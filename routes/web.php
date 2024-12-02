@@ -23,28 +23,39 @@ Route::get('/about', function () {
 })->name('about');
 
 Route::get('/blog', function () {
+    $filters = request(['search', 'category', 'user']);
+    $posts = Post::filter($filters)->latest()->paginate(9)->withQueryString();
+
     $data = [
         'title' => 'Blog',
-        'posts' => Post::all(),
+        'posts' => $posts,
     ];
 
     return view('blog', $data);
 })->name('blog');
 
-Route::get('/blog/{post:slug}', fn(Post $post) => view('blog-detail', [
-    'title' => 'Detail Blog', 
-    'post' => $post
-]))->name('blog.detail');
+Route::get('/blog/{post:slug}', function(Post $post) {
+    return view('blog-detail', [
+        'title' => 'Detail Blog', 
+        'post' => $post
+    ]);
+})->name('blog.detail');
 
-Route::get('users/{user:username}', fn(User $user) => view('blog', [
-    'title' => count($user->posts) . " Articles By " . $user->name,
-    'posts' => $user->posts
-]))->name('blog.by-user');
+Route::get('users/{user:username}', function(User $user) {
+    // $posts = $user->posts->load('category', 'user');
+    return view('blog', [
+        'title' => count($user->posts) . " Articles By " . $user->name,
+        'posts' => $user->posts
+    ]);
+})->name('blog.by-user');
 
-Route::get('categories/{category:slug}', fn(Category $category) => view('blog', [
-    'title' => "Articles: " . $category->name,
-    'posts' => $category->posts
-]))->name('blog.by-category');
+Route::get('categories/{category:slug}', function(Category $category) {
+    // $posts = $category->posts->load('category', 'user');
+    return view('blog', [
+        'title' => "Articles: " . $category->name,
+        'posts' => $category->posts
+    ]);
+})->name('blog.by-category');
 
 Route::get('/contact', function () {
     $data = [
